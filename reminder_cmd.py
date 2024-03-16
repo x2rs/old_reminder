@@ -3,6 +3,8 @@ import json
 import datetime
 from colorama import Fore, Style
 import plyer
+import requests
+import os
 
 _data={}
 time_intervals=[("","")]*15 # index starts with 1
@@ -83,24 +85,56 @@ def notify_items(day:datetime.date):
 
 # plyer.notification.notify(title=f"提醒{datetime.date.today()}",message=notify_items(datetime.date.today()),timeout=5)
 
+# r^2bv
 
-# TODO 天气信息的获取上限是每分钟300次，超过会禁用一小时，数据每8小时更新一次，因此要做一个缓存
-# 获取天气信息
-import requests
-res = requests.get(url="http://t.weather.sojson.com/api/weather/city/101020200") # 闵行区
-res.encoding = "utf-8"
-weather_dict = res.json()# 获取的天气信息是个字典类型
+def request_weather() -> dict: # 天气信息的获取上限是每分钟300次，超过会禁用一小时，数据每8小时更新一次
+    res = requests.get(url="http://t.weather.sojson.com/api/weather/city/101020200") #TODO 默认为闵行区
+    res.encoding = "utf-8"
+    weather_dict=res.json()
+    print("!Requested")
+    return weather_dict
 
-# print(weather_dict["time"], "湿度", weather_dict["data"]["shidu"],"温度", weather_dict["data"]["wendu"])
+def get_weather() -> dict: # 格式见weather_example.json
+    if not os.path.exists("weather.json"):
+        weather_dict = request_weather()
+        if weather_dict["status"] == 200: # 如果字典的 status == 200，则请求成功；否则status会变为错误代码，如404
+            with open("weather.json", mode="w",encoding="utf-8") as f:
+                json.dump(weather_dict,f) # 保存
+            return weather_dict
+        else:
+            # 此时没有任何天气数据
+            return {}
+    # 有缓存
+    with open("weather.json",mode="r",encoding="utf-8") as f:
+        weather_dict=json.load(f)
+    date_str=weather_dict["date"]
+    time=datetime.datetime.fromisoformat(date_str[0:4]+"-"+date_str[4:6]+"-"+date_str[6:8]+" "+weather_dict["cityInfo"]["updateTime"]) # 转换为datetime格式
+    now=datetime.datetime.now()
+    if now-time>datetime.timedelta(hours=8): # > 8 hours, 请求！
+        new_weather_dict = request_weather()
+        if new_weather_dict["status"] == 200: # 如果字典的 status == 200，则请求成功；否则status会变为错误代码，如404
+            with open("weather.json", mode="w",encoding="utf-8") as f:
+                json.dump(new_weather_dict,f) # 保存
+            return new_weather_dict
+    return weather_dict
 
-# TODO 语音播报  考虑pyttsx4
+
+weather_dict=get_weather()
+
+print(weather_dict["cityInfo"]["updateTime"], "湿度", weather_dict["data"]["shidu"],"温度", weather_dict["data"]["wendu"])
+
+
+
+# TODO 安卓端是否可以运行？
 # 工具模块
-import pyttsx3 #导入
+import pyttsx4 #导入
 #创建  初始化
-engine = pyttsx3.init()
+engine = pyttsx4.init()
 #说话
 items=notify_items(datetime.date.today())
 cnt=len(items.split("，"))
-engine.say(f"在{datetime.date.today()}您需要带{cnt}个物品："+notify_items(datetime.date.today()))
+# engine.say(f"在{datetime.date.today()}您需要带{cnt}个物品："+notify_items(datetime.date.today()))
 #运行
-engine.runAndWait()
+# engine.runAndWait()
+
+# TODO 解决一下代码重复的问题
