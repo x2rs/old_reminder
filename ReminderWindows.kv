@@ -1,9 +1,14 @@
 #:kivy 2.3.0
 BoxLayout:
+    MyLayout
+
+<MyLayout>
     orientation: 'vertical'
     Label:
+        id: main_label
         font_name: 'Default'
         text: 'yes'
+        markup: True
     Button:
         font_name: 'Default'
         text: '获取课表'
@@ -13,3 +18,4 @@ BoxLayout:
     Button:
         font_name: 'Default'
         text: '输出'
+        on_press: root.print_result()
