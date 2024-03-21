@@ -1,21 +1,34 @@
 #:kivy 2.3.0
-BoxLayout:
-    MyLayout
+MainWindowsLayout
 
-<MyLayout>
+# BoxLayout
+<MainWindowsLayout>
     orientation: 'vertical'
     Label:
         id: main_label
         font_name: 'Default'
-        text: 'yes'
+        font_size: '16sp'
+        anchor_x: 'center'
+        anchor_y: 'center'
+        halign: 'left'
+        valign: 'middle'
+        text_size: self.size
         markup: True
-    Button:
-        font_name: 'Default'
-        text: '获取课表'
-    Button:
-        font_name: 'Default'
-        text: '更新天气信息'
-    Button:
-        font_name: 'Default'
-        text: '输出'
-        on_press: root.print_result()
+        padding:[100,100]
+        size_hint:1,0.8
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint:1,0.2
+        Button:
+            font_name: 'Default'
+            text: '获取课表'
+        Button:
+            font_name: 'Default'
+            text: '更新天气信息'
+        Button:
+            id:detail_button
+            font_name: 'Default'
+            is_detailed: True
+            on_press: root.switch_detail_button()
+            anchor_x: 'center'
+            anchor_y: 'buttom'

@@ -39,20 +39,30 @@ class Item:
     def reason(self):
         if self.lesson:
             # TODO 重写reason，用color，设置一下默认色，让用户能修改颜色
-            return f"您在{Fore.YELLOW}{time_intervals[self.lesson['start_time']][0]}-{time_intervals[self.lesson['end_time']][1]}{Fore.RESET}有{Fore.CYAN}{self.lesson['name']}{Fore.RESET}，地点：{Fore.BLUE}{self.lesson['place']}{Fore.RESET}"
+            return f"您在"+\
+                color(f"{time_intervals[self.lesson['start_time']][0]}-{time_intervals[self.lesson['end_time']][1]}","FFFF00")+\
+                f"有{color(self.lesson['name'],'00FFFF')}，地点：{color(self.lesson['place'],'0000FF')}"
         return f"这是您每天要带的。"
+
+def format_weather(weather:dict)->str:
+    today=weather["data"]["forecast"][0] # TODO 如果我0点来看呢，怎么会事呢；应该是获取要带物品当天的天气！
+    return f'{today["ymd"]} {today["high"]} {today["low"]} {today["type"]}'
 
 class Inventory:
     items:list[Item]
     date:datetime.date
     weather:dict
     def __init__(self,items,date) -> None:
+        
         self.items=copy.deepcopy(items)
         self.date=date
         self.weather=get_weather()
 
     def to_kivy_text(self,show_numbers=True,detailed=False):
         lines=[]
+        # TODO 天气无论detailed都会输出
+        lines.append(format_weather(self.weather))
+
         lines.append(f"在{color(self.date,'FFFF00')}您需要带{color(len(self.items),'FF0000')}个物品：") #TODO 两个默认色
         for i in range(len(self.items)):
             item=self.items[i]
@@ -66,9 +76,13 @@ class Inventory:
         return "\n".join(lines)
     
 
-def get_inventory(day:datetime.date):
+def get_inventory(day:datetime.date) -> Inventory:
     day_lessons=[] # 这一天要上的课
     items=[] # 这一天要带的物品
+
+    # 优先考虑先装个伞
+    
+
     # 先装上每天要带的
     for item in user_data["global"]:
         items.append(Item(item,"00FF00")) #TODO 每天要带的默认颜色
@@ -83,7 +97,7 @@ def get_inventory(day:datetime.date):
 
             # 添加课本
             for item in user_data["lesson_items"][lesson["name"]]:
-                items.append(Item(item,"FF00FF")) #TODO 课本默认颜色
+                items.append(Item(item,"FF00FF",lesson)) #TODO 课本默认颜色
     return Inventory(items,day)
 
 # TODO提醒

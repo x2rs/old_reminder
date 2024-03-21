@@ -6,6 +6,7 @@ from kivy.uix.label import Label
 from kivy.core.text import LabelBase
 from kivy.uix.widget import Widget
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.anchorlayout import AnchorLayout
 
 from reminder_cmd import * # 作为库文件使用
 
@@ -14,13 +15,17 @@ LabelBase.register(name='Default',
 
 kivy.require("2.3.0")
 
-class MyLayout(BoxLayout):
-    def print_result(self):
+class MainWindowsLayout(BoxLayout):
+    def switch_detail_button(self):
         inv=get_inventory(datetime.date.today())
-        self.ids.main_label.text=inv.to_kivy_text()
+        
+        self.ids.detail_button.is_detailed=not self.ids.detail_button.is_detailed
+        self.ids.detail_button.text="切换为简略" if self.ids.detail_button.is_detailed else "切换为详细"
+        self.ids.main_label.text=inv.to_kivy_text(detailed=self.ids.detail_button.is_detailed)
 
 class ReminderWindowsApp(App):
-    pass
+    def on_start(self):
+        self.root.switch_detail_button()
 
 
 if __name__ == "__main__":
