@@ -74,7 +74,7 @@ class Inventory:
                 text+="，因为"+item.reason()
             lines.append(text)
         return "\n".join(lines)
-    
+
 
 def get_inventory(day:datetime.date) -> Inventory:
     day_lessons=[] # 这一天要上的课
@@ -143,12 +143,14 @@ def say(text:str): # 语音播报
     # TODO 这可能会使线程终止，考虑多线程？
 
 class Schedule:
+    
     start_date:datetime.datetime
     courses:dict[tuple[int,int],str]
     arrangement:list[dict]
 
     def __init__(self) -> None:
-        pass
+        self = None #??????!!!!!!
+ 
 
     @staticmethod
     def from_wakeup(path:str): #! 默认为SJTU课表
@@ -224,8 +226,45 @@ class Schedule:
             "courses":courses,
             "arrangement":self.arrangement
         }
+    
+class Data:
+    global_items:list
+    color_settings:list
+    lesson_items:dict[str,list]
+    virtual_lessons:list
+    schedule:Schedule
+    def __init__(self) -> None:
+        self.global_items=[]
+        self.lesson_items={
+            "大学英语":["英语书"],
+            "数学分析":["数分书"],
+            "大学物理":["物理书"],
+            "程序设计思想与方法":["C++书","电脑"],
+            "概率统计":["概统书"],
+            "思想道德与法治":[""],
+            "工程学导论":["电脑"],
+            "形势与政策":[""],
+            "攀岩":["水"]
+        }# default lesson items
+        self.color_settings={}# default color
+        self.virtual_lessons=["新时代社会认知实践"] #? only for sjtu; e.g. 新时代社会认知实践; will be neglected
+        self.schedule = Schedule()
 
-_sch=Schedule.from_wakeup("example.wakeup_schedule")
+    def from_wakeup(self,path):
+        self.schedule = Schedule.from_wakeup(path)
 
-with open("__test.json",mode="w",encoding="utf-8") as f:
-    json.dump(_sch.to_json_dict(),f)
+    def to_json_dict(self):
+        return {
+            "global_items": self.global_items,
+            "color_settings": self.color_settings,
+            "lesson_items": self.lesson_items,
+            "virtual_lessons": self.virtual_lessons,
+            "schedule": self.schedule.to_json_dict(),
+        }
+
+# TODO:: get canvas -ddl
+
+_data=Data()
+_data.from_wakeup("example.wakeup_schedule")
+with open("__data.json",mode="w",encoding="utf-8") as f:
+    json.dump(_data.to_json_dict(),f,ensure_ascii=False)
