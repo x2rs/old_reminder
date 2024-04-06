@@ -20,16 +20,15 @@ Config.set('graphics','resizable',False) # 将窗口设为不可更改大小 #TO
 kivy.require("2.3.0")
 
 class MainWindowsLayout(BoxLayout):
-    def switch_detail_button(self):
-        inv=get_inventory(datetime.date.today())
-        self.ids.detail_button.is_detailed=not self.ids.detail_button.is_detailed
-        self.ids.detail_button.text="切换为简略" if self.ids.detail_button.is_detailed else "切换为详细"
-        self.ids.main_label.text=inv.to_kivy_text(detailed=self.ids.detail_button.is_detailed)
+    def show_weather(self):
+        00
+
+class TestLayout(BoxLayout):
+    pass
 
 class ReminderWindowsApp(App):
     def on_start(self):
-        self.root.switch_detail_button()
-
+        pass
 
 if __name__ == "__main__":
     app=ReminderWindowsApp()
@@ -37,3 +36,5 @@ if __name__ == "__main__":
     # TODO SleepDown
     app.icon="Genshin.jpg" #TODO 需要一个图标，不能用原神
     app.run()
+    # https://i.sjtu.edu.cn/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default
+    

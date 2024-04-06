@@ -6,18 +6,16 @@ import plyer
 import requests
 import os
 import pyttsx4 # 语音播报模块
+import pdfplumber # pdf读取
 
-user_data={}
 time_intervals=[("","")]*15 # index starts with 1
 
 start_date=datetime.date(2024,2,19) # Monday
 
+#? sjtu time intervals
 for i in range(1,14,2):
     time_intervals[i]=(f"{i+7}:00",f"{i+7}:45")
     time_intervals[i+1]=(f"{i+7}:55",f"{i+8}:40")
-
-with open("data.json",mode="r",encoding="utf-8") as f:
-    user_data=json.load(f)
 
 #! 从kivy启动开始，不再使用控制台的Fore Style等颜色，所有输出格式均匹配kivy
 
@@ -80,8 +78,9 @@ def get_inventory(day:datetime.date) -> Inventory:
     day_lessons=[] # 这一天要上的课
     items=[] # 这一天要带的物品
 
-    # 优先考虑先装个伞
-    
+    # TODO 优先考虑先装个伞
+
+
 
     # 先装上每天要带的
     for item in user_data["global"]:
@@ -115,7 +114,7 @@ def get_weather() -> dict: # 格式见weather_example.json
         weather_dict = _request_weather()
         if weather_dict["status"] == 200: # 如果字典的 status == 200，则请求成功；否则status会变为错误代码，如404
             with open("weather.json", mode="w",encoding="utf-8") as f:
-                json.dump(weather_dict,f) # 保存
+                json.dump(weather_dict,f,ensure_ascii=False) # 保存 # TODO ascii is not ensured
             return weather_dict
         else:
             # 此时没有任何天气数据
@@ -123,14 +122,13 @@ def get_weather() -> dict: # 格式见weather_example.json
     # 有缓存
     with open("weather.json",mode="r",encoding="utf-8") as f:
         weather_dict=json.load(f)
-    date_str=weather_dict["date"]
-    time=datetime.datetime.fromisoformat(date_str[0:4]+"-"+date_str[4:6]+"-"+date_str[6:8]+" "+weather_dict["cityInfo"]["updateTime"]) # 转换为datetime格式
+    time=datetime.datetime.fromisoformat(weather_dict["time"][:10]+" "+weather_dict["cityInfo"]["updateTime"]) # 转换为datetime格式
     now=datetime.datetime.now()
     if now-time>datetime.timedelta(hours=8): # > 8 hours, 请求！
         new_weather_dict = _request_weather()
         if new_weather_dict["status"] == 200: # 如果字典的 status == 200，则请求成功；否则status会变为错误代码，如404
             with open("weather.json", mode="w",encoding="utf-8") as f:
-                json.dump(new_weather_dict,f) # 保存
+                json.dump(new_weather_dict,f,ensure_ascii=False) # 保存 # TODO ascii is not ensured
             return new_weather_dict
     return weather_dict
 
@@ -144,12 +142,14 @@ def say(text:str): # 语音播报
 
 class Schedule:
     
-    start_date:datetime.datetime
+    start_date:datetime.date
     courses:dict[tuple[int,int],str]
     arrangement:list[dict]
 
     def __init__(self) -> None:
-        self = None #??????!!!!!!
+        self.courses={}
+        self.arrangement=[]
+        self.start_date=datetime.date(1,1,1)
  
 
     @staticmethod
@@ -213,8 +213,15 @@ class Schedule:
 
         return _schedule
     
+    @staticmethod
+    def from_pdf(path:str):
+        with open(path,mode="r",encoding="utf-8") as f:
+            pass
+            
+
     def to_json_dict(self):
         courses=[]
+        
         for ids in self.courses:
             courses.append({
                 "tableId": ids[0],
@@ -261,10 +268,23 @@ class Data:
             "virtual_lessons": self.virtual_lessons,
             "schedule": self.schedule.to_json_dict(),
         }
+    
+    @staticmethod
+    def from_json(path):
+        pass # TODO ??????????
+
+    def save(self,path):
+        with open(path,mode="w",encoding="utf-8") as f:
+            json.dump(self.to_json_dict(),f)
+
 
 # TODO:: get canvas -ddl
 
-_data=Data()
-_data.from_wakeup("example.wakeup_schedule")
-with open("__data.json",mode="w",encoding="utf-8") as f:
-    json.dump(_data.to_json_dict(),f,ensure_ascii=False)
+# _data=Data()
+# _data.from_wakeup("example.wakeup_schedule")
+# with open("__data.json",mode="w",encoding="utf-8") as f:
+#     json.dump(_data.to_json_dict(),f,ensure_ascii=False)
+
+user_data=Data()
+
+print(get_weather())
